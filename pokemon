@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+
+import requests
+import click
+import json
+
+@click.command()
+@click.option('--lookup', prompt='pokemon name', help='lookup pokemon')
+@click.option('--generation', default='', help='modifies set of moves')
+def pokemon(lookup, generation):
+    URL = "https://pokeapi.co/api/v2/pokemon/" + str(lookup)
+    r = requests.get(URL).json()
+
+    moves = []
+    if generation == '':
+        for move in r['moves']:
+            moves.append(move['move']['name'])
+        print(r['name'],  r['order'], moves)        
+    else:
+        for move in r['moves']:
+            for detail in move['version_group_details']:
+                if generation in detail['version_group']['name']:
+                    moves.append(move['move']['name'])
+        print(r['name'], r['order'], moves)
+
+            
+if __name__ == "__main__":
+    pokemon()
