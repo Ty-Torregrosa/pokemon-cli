@@ -15,22 +15,26 @@ def pokemon(lookup, generation, movetype):
             initial_request = requests.get(URL)
             r = initial_request.json()
             moves = []
+            # Case 1: User entered ./pokemon --lookup name-or-number 
             if generation == '':
                 for move in r['moves']:
                     moves.append(move['move']['name'])
                 print(r['name'],  r['order'], moves)
             else:
+            # Case 2: User entered ./pokemon --lookup name-or-number --generation gen-name
                 for move in r['moves']:
                     for detail in move['version_group_details']:
+                    # version group details is inexplicably a list, this for loop protects us in case they decide to add elements
                         if generation == detail['version_group']['name']:
                             moves.append(move['move']['name'])
                 if len(moves) == 0:
+                # If there are no moves for a pokemon in a generation, it didn't exist during that generation
                     print("No pokemon with name or number \"" + str(lookup) + "\" exists in generation " + generation)
                     return 1
                 print(r['name'], r['order'], moves)
         except Exception:
             print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo pokemon with name or number \"" + str(lookup) + "\" exists")
-            return 1
+            return 1    
     elif lookup == '' and movetype != '':
         URL = "https://pokeapi.co/api/v2/type/" + str(movetype)
         r = requests.get(URL).json()
