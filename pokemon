@@ -10,20 +10,27 @@ import json
 @click.option('--move-type', 'movetype',default='', help='lists top 10 moves of move type')
 def pokemon(lookup, generation, movetype):
     if lookup != '' and movetype == '':
-       URL = "https://pokeapi.co/api/v2/pokemon/" + str(lookup)
-       r = requests.get(URL).json()
-
-       moves = []
-       if generation == '':
-           for move in r['moves']:
-               moves.append(move['move']['name'])
-           print(r['name'],  r['order'], moves)        
-       else:
-           for move in r['moves']:
-               for detail in move['version_group_details']:
-                   if generation in detail['version_group']['name']:
-                       moves.append(move['move']['name'])
-           print(r['name'], r['order'], moves)
+        try:
+            URL = "https://pokeapi.co/api/v2/pokemon/" + str(lookup)
+            initial_request = requests.get(URL)
+            r = initial_request.json()
+            moves = []
+            if generation == '':
+                for move in r['moves']:
+                    moves.append(move['move']['name'])
+                print(r['name'],  r['order'], moves)
+            else:
+                for move in r['moves']:
+                    for detail in move['version_group_details']:
+                        if generation == detail['version_group']['name']:
+                            moves.append(move['move']['name'])
+                if len(moves) == 0:
+                    print("No pokemon with name or number \"" + str(lookup) + "\" exists in generation " + generation)
+                    return 1
+                print(r['name'], r['order'], moves)
+        except Exception:
+            print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo pokemon with name or number \"" + str(lookup) + "\" exists")
+            return 1
     elif lookup == '' and movetype != '':
         URL = "https://pokeapi.co/api/v2/type/" + str(movetype)
         r = requests.get(URL).json()
@@ -44,8 +51,5 @@ def pokemon(lookup, generation, movetype):
                 move_id+=1
             print(moves)
 
-
-
-            
 if __name__ == "__main__":
     pokemon()
