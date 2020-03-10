@@ -9,7 +9,7 @@ import json
 @click.option('--generation', default='', help='modifies set of moves returned by lookup')
 @click.option('--move-type', 'movetype',default='', help='lists top 10 moves of move type')
 def pokemon(lookup, generation, movetype):
-    if lookup != '' and move_type == '':
+    if lookup != '' and movetype == '':
        URL = "https://pokeapi.co/api/v2/pokemon/" + str(lookup)
        r = requests.get(URL).json()
 
