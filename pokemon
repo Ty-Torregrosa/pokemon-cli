@@ -7,26 +7,34 @@ import json
 @click.command()
 @click.option('--lookup', default='', help='print information about pokemon')
 @click.option('--generation', default='', help='modifies set of moves returned by lookup')
-@click.option('--move-type', 'movetype',default='', help='lists top 10 moves of move type')
+@click.option('--move-type', 'movetype', default='', help='lists top 10 moves of move type')
 def pokemon(lookup, generation, movetype):
     if lookup != '' and movetype == '':
     # Main option: --lookup
         try:
-            URL = "https://pokeapi.co/api/v2/pokemon/" + str(lookup)
-            initial_request = requests.get(URL)
-            r = initial_request.json()
+            # Lookup species (order) number or name to get id
+            species_URL = "https://pokeapi.co/api/v2/pokemon-species/" + str(lookup)
+            species_request = requests.get(species_URL)
+            species_json = species_request.json()
+
+            # Lookup pokemon using id, pokemon endpoint has move data
+            moves_URL = "https://pokeapi.co/api/v2/pokemon/" + str(species_json['id'])
+            moves_request = requests.get(moves_URL)
+            moves_json = moves_request.json()
+            
             moves = []
             # Case 1: User entered ./pokemon --lookup name-or-number 
             if generation == '':
-                for move in r['moves']:
+                for move in moves_json['moves']:
                     moves.append(move['move']['name'])
                 moves.sort()
-                print(r['name'],  r['order'], moves)
+                print(moves)
             else:
             # Case 2: User entered ./pokemon --lookup name-or-number --generation gen-name
-                for move in r['moves']:
+                for move in moves_json['moves']:
                     for detail in move['version_group_details']:
-                    # version group details is inexplicably a list, this for loop protects us in case they decide to add elements
+                    # version group details is inexplicably a list
+                    # this for loop protects us in case they decide to add elements
                         if generation == detail['version_group']['name']:
                             moves.append(move['move']['name'])
                 if len(moves) == 0:
@@ -34,9 +42,9 @@ def pokemon(lookup, generation, movetype):
                     print("No pokemon with name or number \"" + str(lookup) + "\" exists in generation " + generation)
                     return 1
                 moves.sort()
-                print(r['name'], r['order'], moves)
+                print(moves)
         except Exception:
-            print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo pokemon with name or number \"" + str(lookup) + "\" exists")
+            print('Request to ' + species_URL + ' failed, status code: ' + str(species_request.status_code) + "\nNo pokemon with name or number \"" + str(lookup) + "\" exists")
             return 1    
     elif lookup == '' and movetype != '':
     # Main option: --move-type
