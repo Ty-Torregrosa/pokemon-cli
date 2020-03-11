@@ -10,6 +10,7 @@ import json
 @click.option('--move-type', 'movetype',default='', help='lists top 10 moves of move type')
 def pokemon(lookup, generation, movetype):
     if lookup != '' and movetype == '':
+    # Main option: --lookup
         try:
             URL = "https://pokeapi.co/api/v2/pokemon/" + str(lookup)
             initial_request = requests.get(URL)
@@ -36,24 +37,37 @@ def pokemon(lookup, generation, movetype):
             print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo pokemon with name or number \"" + str(lookup) + "\" exists")
             return 1    
     elif lookup == '' and movetype != '':
-        URL = "https://pokeapi.co/api/v2/type/" + str(movetype)
-        r = requests.get(URL).json()
-        if generation == '':
-            for move_id in range(10):
-                print(r['moves'][move_id]['name'])
-        else:
+    # Main option: --move-type
+        try: 
+            URL = "https://pokeapi.co/api/v2/type/" + str(movetype)
+            initial_request = requests.get(URL)
+            r = initial_request.json()
             moves = []
-            move_id = 1
-            #while len(moves) != 10:
-            for i in range(10):
-                # move_url = r['moves'][move_id]['url']
-                URL2 = "https://pokeapi.co/api/v2/move/" + str(move_id)
-                r2 = requests.get(URL2).json()
-                move_generation = r2['generation']['name']
-                if move_generation == generation:
-                    moves.append(r['moves'][move_id - 1]['name'])
-                move_id+=1
-            print(moves)
+            if generation == '':
+            # Case 1: User entered ./pokemon --move-type type
+                for move_id in range(10):
+                    moves.append(r['moves'][move_id]['name'])
+                print(moves)
+            else:
+            # Case 2: User enetered User entered ./pokemon --movetype type --generation gen-name
+                move_id = 1
+                while len(moves) < 10:
+                    URL2 = "https://pokeapi.co/api/v2/move/" + str(move_id)
+                    r2 = requests.get(URL2).json()
+                    move_generation = r2['generation']['name']
+                    URL3 = "https://pokeapi.co/api/v2/generation/" + move_generation
+                    r3 = requests.get(URL3).json()
+
+                    URL4 = "https://pokeapi.co/api/v2/generation/" + generation
+                    r4 = requests.get(URL4).json()
+                    
+                    if r3['version_groups'][0]['name'] == generation or r3['id'] <= r4['id']:
+                        moves.append(r['moves'][move_id-1]['name'])
+                    move_id+=1
+                print(moves)
+        except Exception:
+            print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo move-type \"" + str(movetype) + "\" exists")
+            return 1
 
 if __name__ == "__main__":
     pokemon()
