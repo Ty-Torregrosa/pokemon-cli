@@ -20,6 +20,7 @@ def pokemon(lookup, generation, movetype):
             if generation == '':
                 for move in r['moves']:
                     moves.append(move['move']['name'])
+                moves.sort()
                 print(r['name'],  r['order'], moves)
             else:
             # Case 2: User entered ./pokemon --lookup name-or-number --generation gen-name
@@ -32,6 +33,7 @@ def pokemon(lookup, generation, movetype):
                 # If there are no moves for a pokemon in a generation, it didn't exist during that generation
                     print("No pokemon with name or number \"" + str(lookup) + "\" exists in generation " + generation)
                     return 1
+                moves.sort()
                 print(r['name'], r['order'], moves)
         except Exception:
             print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo pokemon with name or number \"" + str(lookup) + "\" exists")
@@ -47,9 +49,10 @@ def pokemon(lookup, generation, movetype):
             # Case 1: User entered ./pokemon --move-type type
                 for move_id in range(10):
                     moves.append(r['moves'][move_id]['name'])
+                moves.sort()
                 print(moves)
             else:
-            # Case 2: User enetered User entered ./pokemon --movetype type --generation gen-name
+            # Case 2: User entered User entered ./pokemon --movetype type --generation gen-name
                 move_id = 1
                 while len(moves) < 10:
                     URL2 = "https://pokeapi.co/api/v2/move/" + str(move_id)
@@ -64,6 +67,7 @@ def pokemon(lookup, generation, movetype):
                     if r3['version_groups'][0]['name'] == generation or r3['id'] <= r4['id']:
                         moves.append(r['moves'][move_id-1]['name'])
                     move_id+=1
+                moves.sort()
                 print(moves)
         except Exception:
             print('Request to ' + URL + ' failed, status code: ' + str(initial_request.status_code) + "\nNo move-type \"" + str(movetype) + "\" exists")
